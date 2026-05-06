@@ -33,6 +33,21 @@ def create_demo_image(width: int, height: int) -> Image.Image:
     return Image.fromarray(image)
 
 
+def load_images_from_dir(dir_path: str | Path, size: tuple[int, int] = (128, 128)) -> list[Image.Image]:
+    dir_path = Path(dir_path)
+    images = []
+    for path in sorted(dir_path.iterdir()):
+        if path.suffix.lower() not in {".png", ".jpg", ".jpeg"}:
+            continue
+        try:
+            images.append(load_rgb_image(path, size=size))
+        except Exception:
+            pass
+    if not images:
+        raise ValueError(f"no valid images found in {dir_path}")
+    return images
+
+
 def save_image(image: Image.Image, path: str | Path) -> None:
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
