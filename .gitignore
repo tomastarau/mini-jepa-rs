@@ -14,11 +14,13 @@ target
 **/mutants.out*/
 
 *.md
+!README.md
 docs/
 outputs/
 __pycache__/
 *.py[cod]
 .pytest_cache/
+*.egg-info/
 
 # RustRover
 #  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
