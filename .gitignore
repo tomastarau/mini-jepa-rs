@@ -13,7 +13,9 @@ target
 # Contains mutation testing data
 **/mutants.out*/
 
-docs/*
+*.md
+docs/
+outputs/
 __pycache__/
 *.py[cod]
 .pytest_cache/
