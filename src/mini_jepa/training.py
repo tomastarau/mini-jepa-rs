@@ -23,30 +23,31 @@ def train_on_dir(
 ) -> list[float]:
     images = load_images_from_dir(image_dir, size=(image_size, image_size))
 
-    samples = []
-    for i, image in enumerate(images):
+    patch_samples = []
+    for image in images:
         image_tensor = image_to_tensor(image)
-        patches = patchify_image(image_tensor, patch_size)
-        mask = generate_block_mask(image_size, image_size, block_size, blocks, seed + i)
-        hidden_patch_mask = mask_to_patch_mask(mask, patch_size)
-        samples.append((patches, hidden_patch_mask))
+        patch_samples.append(patchify_image(image_tensor, patch_size))
 
-    patch_dim = samples[0][0].shape[1]
-    max_patches = samples[0][0].shape[0]
+    patch_dim = patch_samples[0].shape[1]
+    max_patches = patch_samples[0].shape[0]
     model = MiniJepa(patch_dim=patch_dim, embed_dim=embed_dim, hidden_dim=hidden_dim, max_patches=max_patches)
     optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
     losses = []
+    mask_seed = seed
 
     for _ in range(epochs):
         epoch_loss = 0.0
-        for patches, hidden_patch_mask in samples:
+        for patches in patch_samples:
+            mask = generate_block_mask(image_size, image_size, block_size, blocks, mask_seed)
+            hidden_patch_mask = mask_to_patch_mask(mask, patch_size)
+            mask_seed += 1
             optimizer.zero_grad()
             predictions, targets = model(patches, hidden_patch_mask)
             loss = F.mse_loss(predictions, targets)
             loss.backward()
             optimizer.step()
             epoch_loss += float(loss.detach())
-        losses.append(epoch_loss / len(samples))
+        losses.append(epoch_loss / len(patch_samples))
 
     return losses
 
